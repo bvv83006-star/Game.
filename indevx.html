@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Rock'n Ride — Night City</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<!-- ============= HUD ============= -->
+<div id="hud" class="hidden">
+  <div class="hud-pad">
+    <div class="hud-label" id="whoLabel">PLAYER 1</div>
+    <div class="hud-speed"><span id="spd">0</span><small>KM/H</small></div>
+    <div class="hud-gear" id="gear">N</div>
+    <div class="hud-bar"><i id="nosBar"></i></div>
+    <div class="hud-bar boost"><i id="boostBar"></i></div>
+  </div>
+  <div class="hud-top">
+    <div class="net-pill" id="netPill">● CONNECTED</div>
+    <div class="players-pill" id="playersPill">1/4</div>
+  </div>
+  <div class="hud-fps" id="fps">60</div>
+</div>
+
+<!-- ============= SCREENS ============= -->
+<div id="app">
+
+  <!-- MAIN MENU -->
+  <section class="screen active" id="screen-main">
+    <div class="menu-panel">
+      <div class="brand">
+        <div class="brand-top">ROCK'N RIDE</div>
+        <div class="brand-sub">NIGHT CITY</div>
+      </div>
+      <p class="menu-tag">A neon-soaked street racing experience. Solo or online.</p>
+
+      <div class="menu-buttons">
+        <button class="btn btn-primary" data-goto="play">
+          <span class="btn-icon">▶</span>
+          <span class="btn-body">
+            <span class="btn-title">PLAY</span>
+            <span class="btn-sub">Solo or online with friends</span>
+          </span>
+        </button>
+        <button class="btn btn-secondary" data-goto="garage">
+          <span class="btn-icon">🏁</span>
+          <span class="btn-body">
+            <span class="btn-title">GARAGE</span>
+            <span class="btn-sub">Pick your car and paint</span>
+          </span>
+        </button>
+        <button class="btn btn-secondary" data-goto="settings">
+          <span class="btn-icon">⚙</span>
+          <span class="btn-body">
+            <span class="btn-title">SETTINGS</span>
+            <span class="btn-sub">Graphics, bloom, audio</span>
+          </span>
+        </button>
+        <button class="btn btn-ghost" data-goto="controls">
+          <span class="btn-icon">⌨</span>
+          <span class="btn-body">
+            <span class="btn-title">CONTROLS</span>
+            <span class="btn-sub">Keyboard layout</span>
+          </span>
+        </button>
+      </div>
+
+      <div class="menu-footer">v1.0 · Three.js + Cannon + PeerJS</div>
+    </div>
+
+    <div class="preview-panel">
+      <div class="preview-name" id="previewName">SPORT</div>
+      <div class="preview-stats" id="previewStats">PWR 72 · GRIP 3.4 · TOP 64</div>
+      <div class="preview-hint">◀ rotate with mouse ▶</div>
+    </div>
+  </section>
+
+  <!-- PLAY -->
+  <section class="screen" id="screen-play">
+    <div class="panel">
+      <button class="back-btn" data-goto="main">←</button>
+      <h2 class="panel-title">RACE MODE</h2>
+      <p class="panel-sub">Choose how you want to play.</p>
+
+      <div class="mode-grid">
+        <button class="mode-card" id="modeSolo">
+          <div class="mode-icon">🚗</div>
+          <div class="mode-name">SOLO CRUISE</div>
+          <div class="mode-desc">Open streets, no pressure</div>
+        </button>
+        <button class="mode-card" id="modeHost">
+          <div class="mode-icon">📡</div>
+          <div class="mode-name">HOST ONLINE</div>
+          <div class="mode-desc">Create a room · up to 4 players</div>
+        </button>
+        <button class="mode-card" id="modeJoin">
+          <div class="mode-icon">🔗</div>
+          <div class="mode-name">JOIN ONLINE</div>
+          <div class="mode-desc">Enter a room code</div>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOST LOBBY -->
+  <section class="screen" id="screen-host">
+    <div class="panel">
+      <button class="back-btn" data-goto="play">←</button>
+      <h2 class="panel-title">ROOM READY</h2>
+      <p class="panel-sub">Share this code with friends.</p>
+
+      <div class="code-display" id="codeDisplay">
+        <span>-</span><span>-</span><span>-</span><span>-</span>
+      </div>
+
+      <div class="lobby-players">
+        <div class="lobby-player you">
+          <div class="dot"></div>
+          <div class="name">You (Host)</div>
+          <div class="tag">P1</div>
+        </div>
+        <div class="lobby-player empty" data-slot="1"><div class="dot"></div><div class="name">Waiting…</div><div class="tag">P2</div></div>
+        <div class="lobby-player empty" data-slot="2"><div class="dot"></div><div class="name">Waiting…</div><div class="tag">P3</div></div>
+        <div class="lobby-player empty" data-slot="3"><div class="dot"></div><div class="name">Waiting…</div><div class="tag">P4</div></div>
+      </div>
+
+      <button class="btn btn-primary big" id="startHostRace">
+        START RACE <span id="playerCount">(1/4)</span>
+      </button>
+      <p class="panel-status" id="hostStatus">Setting up room…</p>
+    </div>
+  </section>
+
+  <!-- JOIN -->
+  <section class="screen" id="screen-join">
+    <div class="panel">
+      <button class="back-btn" data-goto="play">←</button>
+      <h2 class="panel-title">JOIN ROOM</h2>
+      <p class="panel-sub">Ask the host for the 4-letter code.</p>
+
+      <input class="code-input" id="joinCode" maxlength="4" placeholder="XXXX" autocomplete="off" spellcheck="false">
+
+      <button class="btn btn-primary big" id="joinBtn">CONNECT</button>
+      <p class="panel-status" id="joinStatus">Enter the code</p>
+    </div>
+  </section>
+
+  <!-- GARAGE -->
+  <section class="screen" id="screen-garage">
+    <div class="panel panel-wide">
+      <button class="back-btn" data-goto="main">←</button>
+      <h2 class="panel-title">GARAGE</h2>
+      <p class="panel-sub">Choose your machine.</p>
+
+      <div class="car-list" id="carList"></div>
+
+      <div class="paint-label">PAINT</div>
+      <div class="paint-row" id="paintRow"></div>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="screen" id="screen-settings">
+    <div class="panel">
+      <button class="back-btn" data-goto="main">←</button>
+      <h2 class="panel-title">SETTINGS</h2>
+      <p class="panel-sub">Tune the experience.</p>
+
+      <div class="setting-row">
+        <label>GRAPHICS QUALITY</label>
+        <select id="setGfx">
+          <option value="low">Low — max FPS</option>
+          <option value="medium" selected>Medium — balanced</option>
+          <option value="high">High — best look</option>
+          <option value="ultra">Ultra — GTA mode</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <label>BLOOM GLOW</label>
+        <select id="setBloom">
+          <option value="off">Off</option>
+          <option value="normal" selected>Normal</option>
+          <option value="heavy">Heavy</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <label>TRANSMISSION</label>
+        <select id="setTrans">
+          <option value="auto" selected>Automatic</option>
+          <option value="manual">Manual (Q/E)</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <label>TRAFFIC DENSITY</label>
+        <input type="range" id="setTraffic" min="4" max="30" value="16">
+        <span class="val" id="valTraffic">16</span>
+      </div>
+      <div class="setting-row">
+        <label>VOLUME</label>
+        <input type="range" id="setVol" min="0" max="100" value="60">
+        <span class="val" id="valVol">60</span>
+      </div>
+
+      <button class="btn btn-ghost" id="btnWipe">RESET SAVED DATA</button>
+    </div>
+  </section>
+
+  <!-- CONTROLS -->
+  <section class="screen" id="screen-controls">
+    <div class="panel">
+      <button class="back-btn" data-goto="main">←</button>
+      <h2 class="panel-title">CONTROLS</h2>
+      <p class="panel-sub">Keyboard layout.</p>
+
+      <div class="controls-grid">
+        <div class="ctrl"><kbd>W</kbd><span>Accelerate</span></div>
+        <div class="ctrl"><kbd>S</kbd><span>Brake / Reverse</span></div>
+        <div class="ctrl"><kbd>A</kbd><span>Steer Left</span></div>
+        <div class="ctrl"><kbd>D</kbd><span>Steer Right</span></div>
+        <div class="ctrl"><kbd>SHIFT</kbd><span>Nitro Boost</span></div>
+        <div class="ctrl"><kbd>Q</kbd><span>Shift Up</span></div>
+        <div class="ctrl"><kbd>E</kbd><span>Shift Down</span></div>
+        <div class="ctrl"><kbd>C</kbd><span>Camera</span></div>
+        <div class="ctrl"><kbd>R</kbd><span>Reset Car</span></div>
+        <div class="ctrl"><kbd>ESC</kbd><span>Pause</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PAUSE -->
+  <section class="screen" id="screen-pause">
+    <div class="panel panel-narrow">
+      <h2 class="panel-title">PAUSED</h2>
+      <button class="btn btn-primary big" id="resumeBtn">RESUME</button>
+      <button class="btn btn-ghost big" id="toMenuBtn">MAIN MENU</button>
+    </div>
+  </section>
+
+  <!-- LOADING -->
+  <div class="toast" id="toast"></div>
+</div>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+    "cannon-es": "https://unpkg.com/cannon-es@0.20.0/dist/cannon-es.js"
+  }
+}
+</script>
+<script type="module" src="game.js"></script>
+</body>
+</html>
