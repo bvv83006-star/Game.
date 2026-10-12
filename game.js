@@ -41,7 +41,7 @@ function applyGfx(){
   renderer.setPixelRatio(pr);
   if(composer) composer.setPixelRatio(pr);
 }
-applyGfx();
+
 
 /* ========== SCENE ========== */
 const scene=new THREE.Scene();
@@ -790,4 +790,5 @@ canvas.addEventListener('mousemove',e=>{
 
 /* ========== INIT ========== */
 setupComposer();
+applyGfx();
 animate();
