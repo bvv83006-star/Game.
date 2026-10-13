@@ -454,7 +454,7 @@ function driveCar(car,inputs,dt,manual){
   car.vehicle.applyEngineForce(engine*boost,2);
   car.vehicle.applyEngineForce(engine*boost,3);
   car.vehicle.applyEngineForce(0,0); car.vehicle.applyEngineForce(0,1);
-  for(let i=0;i<4;i++) car.vehicle.applyBrake(brake,i);
+  for(let i=0;i<4;i++) car.vehicle.setBrake(brake,i);
   const steerMax=.6*(1-Math.min(kmh/240,.7));
   let steer=0;
   if(inputs.l) steer=steerMax;
